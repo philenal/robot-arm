@@ -108,6 +108,10 @@
         /*event listeners*/
         graph.addEventListener('mousedown', function(e) {
             drag = true;
+            if (drag && (getMousePos(graph, e).x <= 525) && getMousePos(graph, e).x >= 75 && getMousePos(graph, e).y >= 100 && getMousePos(graph, e).y <= 550) {
+                mousePos = getMousePos(graph, e);
+                circleMove(e)
+            }
         }, false);
 
         /*if it's dragging (mouse down) and the mouse is within the grid, then draw the new circle where the mouse is. if not within grid, just draw where the mouse was last in it.*/
