@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Didact Gothic">
+    <title>Robot Arm</title>
+    <style type="text/css">
+        #angle {
+            /*position: absolute;
+		top: 0px;
+		right: 0px;*/
+            display: none;
+        }
+
+        #graph {
+            display: inline;
+            margin: 20px;
+        }
+
+        #arm {
+            /*position: absolute;
+		top: 100px;
+		left: 200px;*/
+            /*
+		background-color: rgb(255, 255, 204);*/
+            margin: 20px;
+        }
+
+        body {
+            background-color: rgba(255, 102, 102, .6)
+        }
+
+        #angleLabel {
+            padding: 10px;
+            font-family: "Didact Gothic";
+            text-shadow: 1px 1px 2px;
+            color: rgb(255, 255, 204);
+            font-size: 30px;
+        }
+
+        #Options,
+        #g,
+        #s {
+            font-family: "Didact Gothic";
+            font-size: 20px;
+        }
+
+        form {
+            padding: 10px;
+        }
+
+        #face {
+            /*position: absolute;
+		top: 0px;
+		left: 0px;*/
+            display: inline;
+        }
+    </style>
+    <script type="text/javascript">
+        function changed() {
+            if (document.getElementById("s").selected) {
+                document.getElementById("graph").style.display = "none";
+                document.getElementById("angle").style.display = "inline";
+            } else if (document.getElementById("g").selected) {
+                document.getElementById("angle").style.display = "none";
+                document.getElementById("graph").style.display = "inline";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1 style="font-family: Didact Gothic; text-align: center; color: rgb(255, 255, 204); text-shadow: 1px 1px 2px; font-size: 50px"> Robot Arm </h1>
+    <!-- user input stuff -->
+    <!-- show angle label -->
+
+
+    <div id="angleLabel">
+        Show angle labels: <input type="checkbox" id="check">
+    </div>
+
+
+
+    <!-- makes options for visualization. add js to interact by making one hidden. document.getElementById(id).style.property = new style -->
+    <form>
+        <select onchange="changed()" id="Options">
+            <option id="g">Graph</option>
+            <option id="s">Sliders</option>
+        </select>
+    </form>
+
+    <canvas id="arm" width="600" height="600" style="background-color:  rgb(255, 255, 204); border-radius: 30px"></canvas>
+    <canvas id="angle" width="600" height="600"></canvas>
+    <canvas id="graph" width="600" height="600" style="background-color: rgb(255, 255, 204); border-radius: 30px"></canvas>
+
+    <script type="text/javascript">
+        var graph = document.getElementById("graph");
+        var c_graph = graph.getContext("2d");
+        var circle = [75, 550];
+        var drag = false;
+        var mousePos = {
+            x: 75,
+            y: 500
+        };
+
+        /*event listeners*/
+        graph.addEventListener('mousedown', function(e) {
+            drag = true;
+        }, false);
+
+        /*if it's dragging (mouse down) and the mouse is within the grid, then draw the new circle where the mouse is. if not within grid, just draw where the mouse was last in it.*/
+        graph.addEventListener('mousemove', function(e) {
+            if (drag && (getMousePos(graph, e).x <= 525) && getMousePos(graph, e).x >= 75 && getMousePos(graph, e).y >= 100 && getMousePos(graph, e).y <= 550) {
+                mousePos = getMousePos(graph, e);
+                circleMove(e)
+            }
+            ;
+        }, false);
+        graph.addEventListener('mouseup', function(e) {
+            drag = false;
+        }, false);
+
+        /*draws circle*/
+
+        c_graph.strokeStyle = "#946b6b";
+        drawGrid();
+
+        c_graph.fillStyle = "#FF6666";
+        c_graph.strokeStyle = "#FF6666";
+        c_graph.beginPath();
+        c_graph.arc(circle[0], circle[1], 10, 0, 2 * Math.PI);
+        c_graph.stroke();
+        c_graph.fill();
+
+
+
+        function circleMove() {
+            c_graph.clearRect(0, 0, 600, 600);
+            drawGrid();
+            if (drag) {
+                circle[0] = mousePos.x;
+                circle[1] = mousePos.y;
+            }
+            c_graph.beginPath();
+            c_graph.arc(circle[0], circle[1], 10, 0, 2 * Math.PI);
+            c_graph.clearRect(0, 0, 600, 600);
+            drawGrid();
+            c_graph.fill();
+            c_graph.stroke();       
+        }
+
+        function drawGrid() {
+            /*draws the left and bottom axes*/
+            c_graph.strokeStyle = "#946b6b";
+            c_graph.lineWidth = 5;
+            c_graph.moveTo(75, 100);
+            c_graph.lineTo(75, 550);
+            c_graph.stroke();
+            c_graph.moveTo(75, 550);
+            c_graph.lineTo(525, 550);
+            c_graph.stroke();
+
+            c_graph.lineWidth = 1;
+            c_graph.fillStyle = "#FF6666";
+            c_graph.font = "15px Didact Gothic";
+            /*make vertical graph 6 lines with labels*/
+            for (i = 1; i < 7; i++) {
+                /*top labels*/
+
+                c_graph.fillText(i + "\u03C0/6", 55 + i * 75, 80);
+                /*left labels*/
+                c_graph.fillText(i + "\u03C0/6", 540, 560 - i * 75);
+
+                /*vertical lines*/
+                c_graph.moveTo(75 + i * 75, 100);
+                c_graph.lineTo(75 + i * 75, 550);
+                c_graph.stroke();
+
+                /*horizontal*/
+                c_graph.moveTo(75, 550 - i * 75);
+                c_graph.lineTo(525, 550 - i * 75);
+                c_graph.stroke();
+            }
+            c_graph.font = "bold 20px Didact Gothic";
+            c_graph.fillText("\u03B81", 300, 580);
+            c_graph.fillText("\u03B82", 35, 300);
+        }
+
+
+
+
+        /*angle sliders section*/
+        var angle = document.getElementById("angle");
+        var c_angle = angle.getContext("2d");
+        var isSliding = false;
+        window.mousePos = getMousePos(angle, 'mousemove');
+        window.c1 = [100, 250]
+        window.c2 = [100, 350]
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        /*draw circle function*/
+        function drawCircle(x, y, a,b, theta) {
+            c_angle.fillStyle = "#FF6666";
+            c_angle.strokeStyle = "#FF6666";
+            
+            c_angle.beginPath();
+            c_angle.arc(x, y, 10, 0, theta);
+            c_angle.clearRect(0, 0, 600, 600);
+            drawLine();
+            c_angle.arc(a, b, 10, 0, theta);
+            c_angle.stroke();
+            c_angle.fill();
+        }
+
+
+        function drawLine() {
+            /*lines are 400 pixels long*/
+            var num = 1;
+            c_angle.font = "30px Didact Gothic";
+            c_angle.fillStyle = "#FFFFCC";
+            c_angle.fillText("\u03B81", 30, 260);
+            c_angle.fillText("\u03B82", 30, 360);
+
+            c_angle.font = "20px Didact Gothic";
+            c_angle.fillText("0", 100, 225);
+            c_angle.fillText("\u03C0", 490, 225);
+
+            c_angle.fillText("0", 100, 325);
+            c_angle.fillText("\u03C0", 490, 325);
+
+
+            /*draws line for theta1*/
+            
+            c_angle.lineWidth = 5;
+            c_angle.moveTo(100, 250);
+            c_angle.lineTo(500, 250);
+            /*draws line for theta2*/
+            c_angle.moveTo(100, 350);
+            c_angle.lineTo(500, 350);
+            
+            c_angle.stroke();
+        }
+
+        /*draws circle/mover for theta1 and theta 2, draws lines*/
+        drawLine();
+        c_angle.strokeStyle = "#FF6666";
+        drawCircle(c1[0], c1[1],c2[0], c2[1], 2 * Math.PI);
+
+        function sliderFunction(evt) {
+        	
+            if (isSliding) {
+                mousePos = getMousePos(angle, evt);
+                if (mousePos.x >= 100 && mousePos.x <= 500) {
+                    c_angle.clearRect(0, 0, 600, 600);
+                    drawLine();
+                    if (mousePos.y >= 240 && mousePos.y <= 260) {
+                        c1[0] = mousePos.x;
+                    } else if (mousePos.y >= 340 && mousePos.y <= 360) {
+                        c2[0] = mousePos.x;
+                    }
+
+                    drawCircle(c1[0], c1[1],c2[0], c2[1], 2 * Math.PI);
+
+                }
+            }
+
+        }
+
+        angle.addEventListener('mousedown', function() {
+            mousePos = getMousePos(angle, 'mousemove');
+            isSliding = true;
+        }, false);
+        angle.addEventListener('mousemove', sliderFunction, false);
+        angle.addEventListener('mouseup', function() {
+            isSliding = false;
+        }, false);
+    /*angle.addEventListener('mousedown', function() {
+            if (getMousePos(angle, 'mousedown').x >= 100 && getMousePos(angle, 'mousedown').x <= 500){
+                if (getMousePos(angle, 'mousedown').y >= 240 && getMousePos(angle, 'mousedown').y <= 260) {
+                        mousePos.x=getMousePos(angle, 'mousemove').x;
+                    } else if (getMousePos(angle, 'mousemove').y >= 340 && getMousePos(angle, 'mousemove').y <= 360) {
+                        mousePos.x=getMousePos(angle, 'mousemove').x;
+                    }
+            }
+            mousePos = getMousePos(angle, 'mousemove');
+            isSliding = true;
+        }, false);
+        angle.addEventListener('mousemove', sliderFunction, false);
+        angle.addEventListener('mouseup', function() {
+            isSliding = false;
+        }, false);*/
+
+
+
+
+        /*arm parts*/
+
+        var arm = document.getElementById("arm");
+        var c_arm = arm.getContext("2d");
+
+
+        /*initialize variables*/
+        var origin = [200, 500];
+        var theta1, theta2;
+        var polar1, polar2;
+        var pivot;
+        var end;
+        var r = 150;
+        var range = [Math.PI, Math.PI];
+        drawArm();
+
+
+        /*rotation: input is angle polar coord, origin, radius. output is new point*/
+        function rotate(polar, o, radius) {
+            var point = [0, 0];
+
+            point[0] = o[0] + radius * polar[0];
+            point[1] = o[1] - radius * polar[1];
+
+            return point;
+        }
+
+        /*all angle stuff*/
+        function drawAngles() {
+            /*draw angles in red*/
+            c_arm.lineWidth = 2;
+            c_arm.strokeStyle = "#FF6666";
+            /*draw angle labels*/
+            c_arm.font = "20px Didact Gothic";
+            c_arm.fillStyle = "#FF6666";
+            c_arm.fillText("\u03B81 = " + (theta1 / Math.PI).toFixed(2) + "\u03C0", origin[0] + 40, origin[1]);
+            c_arm.fillText("\u03B82 = " + (theta2 / Math.PI).toFixed(2) + "\u03C0", pivot[0] + 40, pivot[1]);
+
+            c_arm.beginPath();
+            c_arm.moveTo(origin[0], origin[1]); /*start pos*/
+            c_arm.lineTo(origin[0] + 30, origin[1]); /*end pos*/
+            c_arm.stroke();
+            c_arm.beginPath();
+            c_arm.arc(origin[0], origin[1], 30, 2 * Math.PI - theta1, 2 * Math.PI);
+            c_arm.stroke();
+
+            c_arm.beginPath();
+            c_arm.arc(pivot[0], pivot[1], 30, 2 * Math.PI - theta2 - theta1, 2 * Math.PI - theta1);
+            c_arm.stroke();
+            c_arm.beginPath();
+            c_arm.moveTo(pivot[0], pivot[1]); /*start pos*/
+            c_arm.lineTo(pivot[0] + 30 * Math.cos(theta1), pivot[1] - 30 * Math.sin(theta1)); /*end pos*/
+            c_arm.stroke();
+        }
+
+        function drawArm(evt) {
+
+            /*determine theta values from sliders, need to update every time*/
+            c_arm.clearRect(0, 0, 600, 600);
+            if (document.getElementById("s").selected) {
+                theta1 = range[0] * (c1[0] - 100) / 400;
+                theta2 = range[1] * (c2[0] - 100) / 400;
+            } else {
+                theta1 = range[0] * (circle[0] - 75) / 450;
+                theta2 = range[1] * (550 - circle[1]) / 450;
+                /*put down position of circle*/
+            }
+
+
+            polar1 = [Math.cos(theta1), Math.sin(theta1)];
+            polar2 = [Math.cos(theta2 + theta1), Math.sin(theta2 + theta1)];
+
+            /*finds new coord of rotated shtuff*/
+            pivot = rotate(polar1, origin, r);
+            end = rotate(polar2, pivot, r);
+
+            c_arm.lineWidth = 5;
+            /*resets color to red*/
+            c_arm.strokeStyle = "#FF6666";
+
+            /*draw a line from origin to pivot*/
+            c_arm.beginPath();
+            c_arm.moveTo(origin[0], origin[1]); /*start pos*/
+            c_arm.lineTo(pivot[0], pivot[1]); /*end pos*/
+            c_arm.stroke();
+
+
+
+            /*draw line from pivot to end*/
+            c_arm.beginPath();
+            c_arm.moveTo(pivot[0], pivot[1]); /*start pos*/
+            c_arm.lineTo(end[0], end[1]); /*end pos*/
+            c_arm.stroke();
+
+            if (document.getElementById("check").checked) {
+                drawAngles();
+            }
+
+        }
+
+        angle.addEventListener('mousemove', drawArm, false);
+        graph.addEventListener('mousemove', drawArm, false);
+    </script>
+
+</body>
+
+</html>
